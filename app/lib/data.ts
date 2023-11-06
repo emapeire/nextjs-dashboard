@@ -154,10 +154,8 @@ export async function fetchInvoicesPages(query: string) {
   }
 }
 
-export async function fetchInvoiceById(id: string): Promise<InvoiceForm> {
+export async function fetchInvoiceById(id: string) {
   noStore();
-
-  if (!id) throw new Error("No invoice ID provided");
 
   try {
     const data = await sql<InvoiceForm>`
@@ -170,27 +168,15 @@ export async function fetchInvoiceById(id: string): Promise<InvoiceForm> {
       WHERE invoices.id = ${id};
     `;
 
-    if (data.rowCount === 0) {
-      throw new Error(`Invoice with ID ${id} not found.`);
-    }
-
     const invoice = data.rows.map((invoice) => ({
       ...invoice,
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
-    }))[0];
+    }));
 
-    return invoice;
-  } catch (error: unknown) {
+    return invoice[0];
+  } catch (error) {
     console.error("Database Error:", error);
-
-    if (error instanceof Error) {
-      throw new Error(
-        `Failed to fetch invoice with ID ${id}: ${error.message}`
-      );
-    } else {
-      throw new Error(`Failed to fetch invoice with ID ${id}`);
-    }
   }
 }
 
